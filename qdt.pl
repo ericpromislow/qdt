@@ -25,6 +25,13 @@ use constant TAG_COMMENT => 4;
 use constant MSG_WARNING => 1;
 use constant MSG_ERROR => 1;
 
+sub quoteEscape {
+    my $s = shift;
+    $s =~ s/\\/\\\\/g;
+    $s =~ s/'/'\\/g;
+    $s;
+}
+
 sub getLocn {
     my ($allText, $textPos) = @_;
     my $text = substr($allText, 0, $textPos);
@@ -147,7 +154,7 @@ sub processOutput {
     dump_code($code);
     {
 	no strict;
-	print eval($code);
+	eval($code);
     }
     if ($@) {
 	die "Error in your code: $@";
@@ -178,6 +185,7 @@ sub ep {
     return "** $name **";
   }
 }
+
 %>
 
 spring_profiles: postgresql<% if (ep("LDAP_ENABLED", 0)) { %>
@@ -202,11 +210,25 @@ array_here:
        print STDERR "Error eval'ing var LIST => $val: $@\n";
      } else { %>
    list:
-     <% for $x (@$val) { %>
-     - '<%= quote_escape($x) %>'
-     <% } %>
+       <% for $x (@$val) { -%>
+     - '<%= quoteEscape($x) %>'
+       <% } -%>
+     <% } # end if error %>
    <% } # end if list %>
+
+ <% if ($val = ep("HASH", 0)) { %>
 hash_here:
-  bink: 4
+    bink: 4
+    <%
+    $val = eval($val);
+    if ($@) {
+      print STDERR "Error eval'ing var LIST => $val: $@\n";
+    } else { %>
+    stuff:
+      <% while( ($k, $v) = each %$val) { %>
+       <%= $k %>: '<%= quoteEscape($v) %>'
+      <% } %>
+    <% } %>
+<% } %>
 
 _EOF_
