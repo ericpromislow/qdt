@@ -8,7 +8,6 @@ use strict;
 use warnings;
 
 use lib "./lib";
-
 use QDT qw/checkErrors parseDoc processOutput removeExtraWhiteSpace/;
 
 if (@ARGV && $ARGV[0] eq "-v") {
