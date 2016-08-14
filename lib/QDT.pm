@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 package QDT;
 
 use strict;
@@ -23,7 +25,7 @@ use constant MSG_ERROR => 1;
 
 use Exporter;
 our @ISA = qw/Exporter/;
-our @EXPORT_OK = qw/checkErrors evaluateCode generateCode parseDoc removeExtraWhiteSpace/;
+our @EXPORT = qw/checkErrors evaluateCode generateCode parseDoc removeExtraWhiteSpace/;
 
 our $verbose = 0;
 
@@ -114,6 +116,10 @@ sub parseDoc {
     return [\@segments, \@errors];
 }
 
+sub xp {
+    map{sprintf("%s: %d", $_, ord $_) }split(//, shift);
+}
+
 sub removeExtraWhiteSpace {
     my $segments = shift;
     my $leadingWS = 0;
@@ -124,15 +130,15 @@ sub removeExtraWhiteSpace {
 	$seg = $segments->[$i];
 	if ($seg->[0] == SEG_TEXT) {
 	    # Take the trailing whitespace and determine if we should squelch it
-	    $text = $seg->[1];
-	    if ($text =~ m{ \A (.* \n) [ \t]* \z}sx) {
-		my $t1 = $1;
+	    $text = stripTextBeforeLogic($seg->[1]);
+	    if (defined $text) {
 		my $res = shouldStripLogicalWhiteSpace($segments, $i + 1, $lim);
 		if ($res) {
-		    $seg->[1] = $t1;
+		    $seg->[1] = $text;
 		    my $j = $res->[0];
 		    my $replaceText = $res->[1];
 		    $segments->[$j][1] = $replaceText;
+		    $i = $j - 1; # Skip ahead to the string we just adjusted
 		}
 	    }
 	}
@@ -141,16 +147,35 @@ sub removeExtraWhiteSpace {
     return $segments;
 }
 
+sub stripTextBeforeLogic {
+    my $text = shift;
+    if ($text =~ m{ \A ([ \t]+) \z}x ) {
+	return "";
+    } elsif ($text =~ m{ \A (.* \n) [ \t]* \z}sx) {
+	return $1;
+    }
+}
+
+sub stripTextAfterLogic {
+    my $text = shift;
+    if ($text =~ m{ \A [ \t]+ \z }x) {
+	return "";
+    } elsif ($text =~ m{ \A [ \t]* \n (.*) }sx) {
+	return $1;
+    }
+}
+
 sub shouldStripLogicalWhiteSpace {
     my ($segments, $i, $lim) = @_;
-    my ($tagType, $text, $seg);
+    my ($tagType, $text, $seg, $res);
     while ($i < $lim) {
 	$seg = $segments->[$i];
 	if (($tagType = $seg->[0]) == SEG_OUTPUT) {
 	    return;
 	} elsif ($tagType == SEG_TEXT) {
-	    if (($text = $seg->[1]) =~ m{ \A [ \t]* \n (.*) }sx) {
-		return [$i, $1];
+	    $res = stripTextAfterLogic($seg->[1]);
+	    if (defined $res) {
+		return [$i, $res];
 	    } elsif ($text =~ /[^ \t]/) {
 		return;
 	    }
@@ -216,9 +241,10 @@ sub evaluateCode {
 	eval($__code);
     }
     if ($@) {
+	return [undef, $@];
 	die "Error in the template: $@";
     }
-    return \@__collector;
+    return [\@__collector, undef];
 }
 
 sub dump_code {

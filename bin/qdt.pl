@@ -29,7 +29,11 @@ if ($fname) {
 my $res = parseDoc($text);
 checkErrors($res->[1]);
 $res = evaluateCode(generateCode(removeExtraWhiteSpace($res->[0])));
-print join("", @$res);
+if ($res->[1]) {
+    print "Error in template: $res->[1]\n";
+} else {
+    print join("", @{$res->[0]});
+}
 
 __DATA__
 <%
