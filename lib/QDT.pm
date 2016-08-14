@@ -154,6 +154,7 @@ sub stripTextBeforeLogic {
     } elsif ($text =~ m{ \A (.* \n) [ \t]* \z}sx) {
 	return $1;
     }
+    undef;
 }
 
 sub stripTextAfterLogic {
@@ -163,6 +164,7 @@ sub stripTextAfterLogic {
     } elsif ($text =~ m{ \A [ \t]* \n (.*) }sx) {
 	return $1;
     }
+    undef;
 }
 
 sub shouldStripLogicalWhiteSpace {
@@ -173,7 +175,7 @@ sub shouldStripLogicalWhiteSpace {
 	if (($tagType = $seg->[0]) == SEG_OUTPUT) {
 	    return;
 	} elsif ($tagType == SEG_TEXT) {
-	    $res = stripTextAfterLogic($seg->[1]);
+	    $res = stripTextAfterLogic(($text = $seg->[1]));
 	    if (defined $res) {
 		return [$i, $res];
 	    } elsif ($text =~ /[^ \t]/) {
@@ -184,6 +186,7 @@ sub shouldStripLogicalWhiteSpace {
 	$i += 1;
     }
     # Otherwise if it's SEG_LOGIC just keep looking for the next thing.
+    undef;
 }
 
 sub checkErrors {
