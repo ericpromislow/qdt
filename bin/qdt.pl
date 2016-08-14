@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use lib "./lib";
-use QDT qw/checkErrors parseDoc processOutput removeExtraWhiteSpace/;
+use QDT qw/checkErrors evaluateCode generateCode parseDoc removeExtraWhiteSpace/;
 
 if (@ARGV && $ARGV[0] eq "-v") {
     $QDT::verbose = 1;
@@ -28,7 +28,8 @@ if ($fname) {
 }
 my $res = parseDoc($text);
 checkErrors($res->[1]);
-processOutput(removeExtraWhiteSpace($res->[0]));
+$res = evaluateCode(generateCode(removeExtraWhiteSpace($res->[0])));
+print join("", @$res);
 
 __DATA__
 <%

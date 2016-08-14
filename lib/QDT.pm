@@ -23,7 +23,7 @@ use constant MSG_ERROR => 1;
 
 use Exporter;
 our @ISA = qw/Exporter/;
-our @EXPORT_OK = qw/checkErrors parseDoc processOutput removeExtraWhiteSpace/;
+our @EXPORT_OK = qw/checkErrors evaluateCode generateCode parseDoc removeExtraWhiteSpace/;
 
 our $verbose = 0;
 
@@ -182,7 +182,7 @@ sub checkErrors {
     }
 }
 
-sub processOutput {
+sub generateCode {
     my $res = shift;
     my @segments = @{$res};
     #print join("\n", map {">> @$_"} @segments) . "\n";
@@ -196,22 +196,29 @@ sub processOutput {
 	} elsif ($segType == SEG_TEXT) {
 	    $segText =~ s{\\}{\\\\}g;
 	    $segText =~ s{'}{\\'}g;
-	    "\nprint '$segText';"
+	    "\n push(\@__collector, '$segText');"
 	} else {
 	    die "Unexpected segType of $segType" if $segType != SEG_OUTPUT;
-	    "\nprint($segText);";
+	    "\n push(\@__collector, $segText);"
     }
     } @segments;
     print join("\n", map {"*>> $_"} @codeSegments) . "\n" if $verbose;
     my $code = join("", @codeSegments);
     dump_code($code) if $verbose;
+    return $code;
+}
+
+sub evaluateCode {
+    my $__code = shift;
+    my @__collector;
     {
 	no strict;
-	eval($code);
+	eval($__code);
     }
     if ($@) {
-	die "Error in your code: $@";
+	die "Error in the template: $@";
     }
+    return \@__collector;
 }
 
 sub dump_code {
