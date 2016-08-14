@@ -14,6 +14,7 @@ use warnings;
 use constant SEG_TEXT => 1;
 use constant SEG_LOGIC => 2;
 use constant SEG_OUTPUT => 3;
+use constant SEG_COMMENT => 4;
 
 use constant TAG_NONE => 1;
 use constant TAG_CODE => 2;
@@ -97,7 +98,7 @@ sub parseDoc {
 	    }
 	} else {
 	    if ($tagType == TAG_COMMENT) {
-		# Do nothing
+		push @segments, [SEG_COMMENT, $t];
 	    } elsif ($tagType == TAG_CODE) {
 		push @segments, [SEG_LOGIC, $t];
 	    } elsif ($tagType == TAG_EMIT) {
@@ -123,16 +124,16 @@ sub xp {
 sub removeExtraWhiteSpace {
     my $segments = shift;
     my $leadingWS = 0;
-    my ($tagType, $text, $seg);
+    my ($tagType, $text, $seg, $res);
     my $i = 0;
     my $lim = 0+@$segments;
     while ($i < $lim) {
 	$seg = $segments->[$i];
-	if ($seg->[0] == SEG_TEXT) {
+	if (($tagType = $seg->[0]) == SEG_TEXT) {
 	    # Take the trailing whitespace and determine if we should squelch it
 	    $text = stripTextBeforeLogic($seg->[1]);
 	    if (defined $text) {
-		my $res = shouldStripLogicalWhiteSpace($segments, $i + 1, $lim);
+		$res = shouldStripLogicalWhiteSpace($segments, $i + 1, $lim);
 		if ($res) {
 		    $seg->[1] = $text;
 		    my $j = $res->[0];
@@ -140,6 +141,16 @@ sub removeExtraWhiteSpace {
 		    $segments->[$j][1] = $replaceText;
 		    $i = $j - 1; # Skip ahead to the string we just adjusted
 		}
+	    }
+	} elsif ($tagType == SEG_LOGIC || $tagType == SEG_COMMENT ) {
+	    # We aren't following leading white-space, but does the sequence of code blocks end
+	    # with squelchable trailing white-space or a newline?
+	    $res = shouldStripLogicalWhiteSpace($segments, $i + 1, $lim);
+	    if ($res) {
+		my $j = $res->[0];
+		my $replaceText = $res->[1];
+		$segments->[$j][1] = $replaceText;
+		$i = $j - 1; # Skip ahead to the string we just adjusted
 	    }
 	}
 	$i += 1;
@@ -185,7 +196,7 @@ sub shouldStripLogicalWhiteSpace {
 	}
 	$i += 1;
     }
-    # Otherwise if it's SEG_LOGIC just keep looking for the next thing.
+    # Otherwise if it's SEG_LOGIC or SEG_COMMENT just keep looking for the next thing.
     undef;
 }
 
@@ -225,6 +236,8 @@ sub generateCode {
 	    $segText =~ s{\\}{\\\\}g;
 	    $segText =~ s{'}{\\'}g;
 	    "\n push(\@__collector, '$segText');"
+	} elsif ($segType == SEG_COMMENT) {
+	    # Do nothing
 	} else {
 	    die "Unexpected segType of $segType" if $segType != SEG_OUTPUT;
 	    "\n push(\@__collector, $segText);"
