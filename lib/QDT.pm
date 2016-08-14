@@ -109,7 +109,7 @@ sub parseDoc {
 	$textPos += length($t);
     }
     if ($tagType != TAG_NONE) {
-	push @errors, [MSG_WARNING, "Unmatched <% at pos " . getPos($text, $lastTagStartPos)];
+	push @errors, [MSG_ERROR, "Unmatched <% at pos " . getLocn($text, $lastTagStartPos)];
     }
     return [\@segments, \@errors];
 }
