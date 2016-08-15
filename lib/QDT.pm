@@ -5,12 +5,6 @@ package QDT;
 use strict;
 use warnings;
 
-# Return a tagged array of segments:
-# Tags:
-# TEXT
-# LOGIC
-# OUTPUT
-
 use constant SEG_TEXT => 1;
 use constant SEG_LOGIC => 2;
 use constant SEG_OUTPUT => 3;
@@ -60,6 +54,9 @@ sub getLocn {
 # <<%#%># : emits a literal "<#"
 # %> that isn't preceded by a <% is emitted as is
 # Everything else is emitted as is.
+
+# Returns a tagged array of pieces of text
+
 sub parseDoc {
     my $text = shift;
     return [] if !$text;
@@ -120,6 +117,16 @@ sub parseDoc {
 sub xp {
     map{sprintf("%s: %d", $_, ord $_) }split(//, shift);
 }
+
+=begin
+
+removeExtraWhiteSpace - basically we want to remove the whitespace surrounding a <% ... %>
+tag, including the trailing newline, if there's no other non-whitespace text next to it.
+Because the parser isn't line-oriented, it's easier to walk through the array of segments
+and use context to figure out what to do.  See tests like t/check-white-space.t to see
+examples of how this works.
+
+=cut
 
 sub removeExtraWhiteSpace {
     my $segments = shift;
@@ -249,6 +256,18 @@ sub generateCode {
     return $code;
 }
 
+=begin
+
+The emitted code is a mixture of Perl logic and updates to an array
+of strings called "@__collector". This var should probably be put
+in a package to make it harder for templates to collide with it, but
+it's an unlikely enough name.
+
+Returns a Go-like array, of either [nil, error-message] or [the contents
+of the @__collector array, followed by nil.
+
+=cut
+
 sub evaluateCode {
     my $__code = shift;
     my @__collector;
@@ -256,11 +275,7 @@ sub evaluateCode {
 	no strict;
 	eval($__code);
     }
-    if ($@) {
-	return [undef, $@];
-	die "Error in the template: $@";
-    }
-    return [\@__collector, undef];
+    return $@ ? [undef, $@] : [\@__collector, undef];
 }
 
 sub dump_code {
