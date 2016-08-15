@@ -10,7 +10,6 @@ use QDT;
 $ENV{LDAP_ENABLED} = 1;
 $ENV{LDAP_HOST} = "192.168.1.2";
 $ENV{LDAP_PORT} = 1389;
-$ENV{LDAP_PORT} = 1389;
 
 my $doc = <<'_EOT_';
 
