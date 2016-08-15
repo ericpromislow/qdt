@@ -30,7 +30,7 @@ sub get_p {
     my $default = shift;
     if (!defined $ENV{$name}) {
 	return $default if (defined $default);
-	die "Undefined environment variable: #{name}";
+	die "Undefined environment variable: $name";
     }
     return $ENV{$name};
 }
