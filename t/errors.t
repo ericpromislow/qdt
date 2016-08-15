@@ -6,6 +6,8 @@ use Test::More;
 use lib "./lib";
 use QDT;
 
+$ENV{abc} = 1;
+
 my $tests = [
     ["<%= \"abc\" . # blah \"def\" %>", qr{syntax error at \(eval \d+\) line 2, at EOF}],
     # Missing brace
@@ -14,7 +16,7 @@ my $tests = [
 oops, we commented-out the close-brace:
 <% # } %>
 _EOT_
-qr{syntax error at \(eval \d+\).*Missing right curly or square bracket}s],
+qr{Missing right curly or square bracket}s],
     ];
 
 plan tests => 2 * @$tests;

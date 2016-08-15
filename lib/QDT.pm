@@ -194,9 +194,9 @@ sub shouldStripLogicalWhiteSpace {
 	    }
 	    # Otherwise if it contains only tabs and spaces keep going
 	}
+	# Otherwise if it's SEG_LOGIC or SEG_COMMENT just keep looking for the next thing.
 	$i += 1;
     }
-    # Otherwise if it's SEG_LOGIC or SEG_COMMENT just keep looking for the next thing.
     undef;
 }
 
@@ -235,12 +235,12 @@ sub generateCode {
 	} elsif ($segType == SEG_TEXT) {
 	    $segText =~ s{\\}{\\\\}g;
 	    $segText =~ s{'}{\\'}g;
-	    "\n push(\@__collector, '$segText');"
+	    "\n" . "push(\@__collector, '$segText');"
 	} elsif ($segType == SEG_COMMENT) {
 	    # Do nothing
 	} else {
 	    die "Unexpected segType of $segType" if $segType != SEG_OUTPUT;
-	    "\n push(\@__collector, $segText);"
+	    "\n" . "push(\@__collector, $segText);"
     }
     } @segments;
     print join("\n", map {"*>> $_"} @codeSegments) . "\n" if $verbose;
