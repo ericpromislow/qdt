@@ -78,5 +78,3 @@ $res = evaluateCode(generateCode(removeExtraWhiteSpace($res->[0])));
 is($res->[1], undef);
 isnt(0+@{$res->[0]}, 0);
 is(join("", @{$res->[0]}), $expected);
-
-
