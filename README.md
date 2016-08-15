@@ -38,3 +38,10 @@ do that in pure Perl please let me know.  If you're system supports
 `XS`, go use one of the many other Perl templating systems. *QDT* is
 for everyone else.
 
+# WARNING
+
+QDT calls eval liberally, and without doing any taint-checking. It's
+intended for internal use only, such as for interpolating environment
+variables into configuration templates. If user-supplied content is
+getting interpolated into a template, you'll need to do the necessary
+analysis to ensure the content can be safely eval'ed.
