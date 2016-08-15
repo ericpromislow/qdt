@@ -11,6 +11,7 @@ my $tests = [
      "appears-1,appears-2,\nappears-3"],
     ['<% $abc = "<\%"; %><%= $abc %>', "<%"],
     [q/<%= 'abc' . "def" . qq[ghi] . q[jkl] %>/, "abcdefghijkl"],
+    ["<%= \"abc\" . # blah \n\"def\" %>", "abcdef" ],
     ];
 plan tests => 3 * @$tests;
 $QDT::verbose = 0;
