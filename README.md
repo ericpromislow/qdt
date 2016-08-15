@@ -26,6 +26,23 @@ will produce the same output as:
     <% foo(args...); # call foo %>
     more
 
+## Available functions
+
+    get_p(env-var name[, default-value])
+
+if the specified environment variable isn't set, returns the
+default-value if given, otherwise gives a fatal error message.
+If it's set, return its value.
+
+## Compound values
+
+Arrays need to be specified with '["value 1", "value 2" ...]' syntax.
+Hashes need to be specified with '["key 1" => "value 1", "key 2" =>
+"value 2"]' syntax.
+
+Compound arrays and hashes currently aren't supported.  These values
+are parsed with the eval() function.  See the warning below for the
+implications of this.
 
 # Command-line usage:
 

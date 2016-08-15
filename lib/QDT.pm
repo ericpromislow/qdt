@@ -24,6 +24,18 @@ our @EXPORT = qw/checkErrors evaluateCode generateCode parseDoc removeExtraWhite
 
 our $verbose = 0;
 
+# Use this function in templates:
+sub get_p {
+    my $name = shift;
+    my $default = shift;
+    if (!defined $ENV{$name}) {
+	return $default if (defined $default);
+	die "Undefined environment variable: #{name}";
+    }
+    return $ENV{$name};
+}
+
+
 sub quoteEscape {
     my $s = shift;
     $s =~ s/\\/\\\\/g;
