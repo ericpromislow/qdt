@@ -15,6 +15,18 @@ the delimiters is Perl code.
 
 Anything else is emitted verbatim.
 
+Note that a comment in a `<% ... %>` tag ends until either a
+newline in the construct, or the end of the tag, but doesn't extend
+further. In other words, 
+
+    <% foo(args...); # call foo %>more
+
+will produce the same output as:
+
+    <% foo(args...); # call foo %>
+    more
+
+
 # Command-line usage:
 
     perl -Ilib bin/qdt.pl <file>
