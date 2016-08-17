@@ -36,9 +36,9 @@ If it's set, return its value.
 
 ## Compound values
 
-Arrays need to be specified with '["value 1", "value 2" ...]' syntax.
-Hashes need to be specified with '["key 1" => "value 1", "key 2" =>
-"value 2"]' syntax.
+Arrays need to be specified with `'["value 1", "value 2" ...]'` syntax.
+Hashes need to be specified with `'["key 1" => "value 1", "key 2" =>
+"value 2"]'` syntax.
 
 Compound arrays and hashes currently aren't supported.  These values
 are parsed with the eval() function.  See the warning below for the
